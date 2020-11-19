@@ -10,6 +10,18 @@ def randomSleep():
     time.sleep(ret)
 
 
+#   获取随机数
+def randInt(a, b):
+    return random.randint(a, b)
+
+
+#  年月日获取时间戳
+def dateToUix(year, moth, day):
+    date = QDate(year, moth, day)
+    qtime = QTime(0, 0)
+    return QDateTime(date, qtime).toTime_t()
+
+
 #   获取开始结束日期
 def timeLag(daylag: int = 5, timetype: str = 'uix'):  # 日期间隔  类型 uix时间戳 day日期
     res = False
@@ -25,7 +37,7 @@ def timeLag(daylag: int = 5, timetype: str = 'uix'):  # 日期间隔  类型 uix
 
 
 #   生成最近n天日期
-def dateList(dateAry: tuple):
+def dateDayList(dateAry: tuple):
     start, end = dateAry
     res = []
     cur_day = start
@@ -36,6 +48,19 @@ def dateList(dateAry: tuple):
     return res
 
 
+#   近几日时间戳
+def dateUixList(dateAry: tuple):
+    start, end = dateAry
+    qtime = QTime(0, 0)
+    res = []
+    cur_day = start
+    res.append(QDateTime(cur_day, qtime).toTime_t())
+    while cur_day < end:
+        cur_day = cur_day.addDays(+1)
+        res.append(QDateTime(cur_day, qtime).toTime_t())
+    return res
+
+
 #   QDate 转时间戳
 def dateToStamps(dateAry: tuple):
     start, end = dateAry
@@ -43,6 +68,21 @@ def dateToStamps(dateAry: tuple):
     start = QDateTime(start, qtime)
     end = QDateTime(end, qtime)
     return (start.toTime_t(), end.toTime_t())
+
+
+#   时间戳转日期字符串
+def uixToDateStr(uix):
+    qdatetime = QDateTime.fromTime_t(uix)
+    return qdatetime.toString('yyyy-MM-dd')
+
+
+#   获取前几日时间戳
+def targetDateUix(diff: int, tdate: object = None):
+    if not tdate:
+        tdate = QDate.currentDate()
+    tdate = tdate.addDays(diff)
+    time = QTime(0, 0)
+    return QDateTime(tdate, time).toTime_t()
 
 
 def logFile(strings: str, file='debug-log.log'):

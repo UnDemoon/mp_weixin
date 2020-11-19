@@ -62,7 +62,6 @@ class MyApp(QtWidgets.QMainWindow, Ui):
             QtWidgets.QMessageBox.information(self, '提示', '最多采集8日数据！', QtWidgets.QMessageBox.Yes)
             return False
         return (self.DateEdit_2.date(), self.DateEdit.date())
-        # self.DateEdit_2.setDate(endDate.addDays(-7))
 
     #   按钮触发
     def signin(self):
@@ -74,13 +73,15 @@ class MyApp(QtWidgets.QMainWindow, Ui):
     def lgGether(self, dateary: tuple):
         self.browser = browserInit()
         jump_urls = lgm.mp_weixin_login(self.browser, URL['mp_weixin_login'])
-        myTools.logFile(str(jump_urls))
-        for url in jump_urls:
+        self.log('广告主总计'+str(len(jump_urls)) + '个，开始采集')
+        for idx, url in enumerate(jump_urls):
             cookies, token = lgm.mp_weixin_jump(self.browser, url)
-            th = MpThread(cookies, token, "info", dateary)
+            comp_info = '广告主 ' + str(idx+1) + ' 完成'
+            th = MpThread(cookies, token, comp_info, dateary)
             th.sig.completed.connect(self.log)
             self.threadPools.append(th)
             th.start()
+        self.browser.quit()
 
     #    输出信息
     def log(self, text, line=True):
@@ -110,7 +111,7 @@ class MpThread(QThread):
         #   开发平台数据采集
         ger = MpGather(self.cookies, self.token, self.dateAry)
         res = ger.runCollect()
-        print(res)
+        up.up('addWeixinMp', res)
         self.sig.completed.emit(self.info)
 
 
@@ -132,9 +133,6 @@ if __name__ == '__main__':
     # 定义为全局变量，方便其他模块使用
     global URL, RUN_EVN
     # 登录界面的url
-    # https://open.oppomobile.com
-    now = time.localtime()
-    t = time.strftime("%Y%m%d%H%M", now)
     URL = {
         "mp_weixin_login": "https://a.weixin.qq.com/index.html",
     }

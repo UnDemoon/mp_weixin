@@ -73,11 +73,14 @@ class MpGather:
         #   广告联盟
         url = self.colloctConf[0]['url']
         params = self.colloctConf[0]['data']
-        details_list = self.getPages(url, params)
+        details_list = []
+        for start_uix in mytools.dateUixList(self.data_ary):
+            details_list += self.getPages(url, params, start_uix)
         return details_list
 
     #   多页数据处理
-    def getPages(self, url, data):
+    def getPages(self, url, data, start_uix):
+        create_time_range = mytools.dateToUix(2020, 8, 18) + mytools.randInt(1, 59)
         #   请求参数
         args = {
             "op_type": 1,
@@ -89,29 +92,32 @@ class MpGather:
             "pos_type": 995,
             "advanced": True,
             "create_time_range": {
-                "start_time": 1597593643
+                "start_time": create_time_range
             },
             "query_index": "[\"cname\",\"material_preview\",\"status\",\"budget\",\"paid\",\"exp_pv\",\"clk_pv\",\"ctr\",\"clk_uv\",\"cpc\",\"conv_index_cvr\",\"conv_index_cpa\",\"bid\",\"ecpm\",\"expand_targeting_switch\",\"exposure_score\",\"minigame_realization_roi_amount\",\"minigame_realization_roi\",\"begin_time\",\"end_time\",\"auto_compensate_money\"]",
             "time_range": {
-                "start_time": 1605456000,
-                "last_time": 1605542399
+                "start_time": start_uix,
+                "last_time": start_uix + (24*60*60 - 1)
             }
         }
         data['args'] = json.dumps(args)
+        day = mytools.uixToDateStr(start_uix)
         #   发起请求
         res = []
         onepage = self._get(url, data)
         while len(onepage.get('list', [])) > 0:
-            res += self._dealData(onepage['list'])
+            res += self._dealData(onepage['list'], day)
             args['page'] = onepage['conf']['page'] + 1
             data['args'] = json.dumps(args)
             onepage = self._get(url, data)
         return res
 
     #   数据处理
-    def _dealData(self, data_list: list):
+    def _dealData(self, data_list: list, day: str):
         return list(map(lambda x: {
+            'cid': x.get('campaign_info', {}).get('cid'),   # 计划唯一id
             'cname': x.get('campaign_info', {}).get('cname'),
+            'day': day,
             'appid': x.get('campaign_info', {}).get('product_id'),
             'paid': x.get('campaign3_index', {}).get('paid'),   # 花费
             'exp_pv': x.get('campaign3_index', {}).get('exp_pv'),   # 曝光次数

@@ -8,7 +8,6 @@
 '''
 #  基础模块
 import sys
-import time
 import json
 #   selenium相关
 from selenium import webdriver
@@ -23,7 +22,6 @@ import login as lgm
 #   引入requests类
 from UploadData import UploadData as UpData
 from MpGather import MpGather
-import utils as myTools
 
 
 class MyApp(QtWidgets.QMainWindow, Ui):
